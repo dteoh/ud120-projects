@@ -52,7 +52,7 @@ for idx, (name, from_person) in enumerate([("sara", from_sara), ("chris", from_c
 
             ### use str.replace() to remove any instances of the words
             ### ["sara", "shackleton", "chris", "germani"]
-            for signature_word in ["sara", "shackleton", "chris", "germani"]:
+            for signature_word in ["sara", "shackleton", "chris", "germani", "sshacklensf", "cgermannsf"]:
                 text = text.replace(signature_word, '')
 
             ### append the text to word_data
