@@ -16,10 +16,46 @@ features_list = ['poi','salary'] # You will need to use more features
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
+# For data exploration
+import pandas as pd
+
+# Convert NaN strings into None
+for name in my_dataset:
+    my_dataset[name] = {k: None if v == 'NaN' else v for k,v in my_dataset[name].iteritems()}
+df = pd.DataFrame([dict(name=name, **my_dataset[name]) for name in my_dataset])
+
+# Cleanup data
+PAYMENTS = ('salary', 'bonus', 'long_term_incentive', 'deferred_income', 'deferral_payments', 'loan_advances', 'other', 'expenses', 'director_fees', 'total_payments')
+STOCK_VALUE = ('exercised_stock_options', 'restricted_stock', 'restricted_stock_deferred', 'total_stock_value')
+
+## Payments data
+for x in PAYMENTS:
+    df.loc[df[x].isnull(), x] = 0
+
+## Stock Value data
+for x in STOCK_VALUE:
+    df.loc[df[x].isnull(), x] = 0
+
+### Identify discrepancies
+df.loc[df.total_payments < (df.salary + df.bonus + df.long_term_incentive + df.deferred_income + df.deferral_payments + df.loan_advances + df.other + df.expenses + df.director_fees), ['name', 'total_payments']]
+df.loc[df.total_payments > (df.salary + df.bonus + df.long_term_incentive + df.deferred_income + df.deferral_payments + df.loan_advances + df.other + df.expenses + df.director_fees), ['name', 'total_payments']]
+df.loc[df.total_stock_value < (df.exercised_stock_options + df.restricted_stock + df.restricted_stock_deferred), ['name', 'total_stock_value']]
+df.loc[df.total_stock_value > (df.exercised_stock_options + df.restricted_stock + df.restricted_stock_deferred), ['name', 'total_stock_value']]
+
+### There seems to be some transposition errors in the data...
+### Manually fixing bad data
+df.loc[df.name == 'BELFER ROBERT', PAYMENTS] = (0. ,0., 0., , -102500., 0., 0., 0., 3285., 102500., 3285.)
+df.loc[df.name == 'BELFER ROBERT', STOCK_VALUE] = (0., 44093., -44093., 0.)
+
+df.loc[df.name == 'BHATNAGAR SANJAY', PAYMENTS] = (0., 0., 0., 0., 0., 0., 0., 137864., 0., 137864.)
+df.loc[df.name == 'BHATNAGAR SANJAY', STOCK_VALUE] = (15456290., 2604490., -2604490., 15456290.,)
+
+
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
+
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -35,11 +71,11 @@ labels, features = targetFeatureSplit(data)
 from sklearn.naive_bayes import GaussianNB
 clf = GaussianNB()
 
-### Task 5: Tune your classifier to achieve better than .3 precision and recall 
+### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
 ### folder for details on the evaluation method, especially the test_classifier
 ### function. Because of the small size of the dataset, the script uses
-### stratified shuffle split cross validation. For more info: 
+### stratified shuffle split cross validation. For more info:
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
@@ -52,4 +88,4 @@ features_train, features_test, labels_train, labels_test = \
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
 
-dump_classifier_and_data(clf, my_dataset, features_list)
+# dump_classifier_and_data(clf, my_dataset, features_list)
