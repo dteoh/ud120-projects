@@ -16,6 +16,8 @@ features_list = ['poi','salary'] # You will need to use more features
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
+my_dataset = data_dict
+
 # For data exploration
 import pandas as pd
 
@@ -44,7 +46,7 @@ df.loc[df.total_stock_value > (df.exercised_stock_options + df.restricted_stock 
 
 ### There seems to be some transposition errors in the data...
 ### Manually fixing bad data
-df.loc[df.name == 'BELFER ROBERT', PAYMENTS] = (0. ,0., 0., , -102500., 0., 0., 0., 3285., 102500., 3285.)
+df.loc[df.name == 'BELFER ROBERT', PAYMENTS] = (0. ,0., 0., -102500., 0., 0., 0., 3285., 102500., 3285.)
 df.loc[df.name == 'BELFER ROBERT', STOCK_VALUE] = (0., 44093., -44093., 0.)
 
 df.loc[df.name == 'BHATNAGAR SANJAY', PAYMENTS] = (0., 0., 0., 0., 0., 0., 0., 137864., 0., 137864.)
@@ -54,8 +56,16 @@ df.loc[df.name == 'BHATNAGAR SANJAY', STOCK_VALUE] = (15456290., 2604490., -2604
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
-my_dataset = data_dict
 
+def convert_df_to_my_dataset():
+    dataset = {}
+    for row in df.itertuples():
+        dataset[row.name] = row._asdict()
+        dataset[row.name].pop('Index')
+        dataset[row.name].pop('name')
+    return dataset
+
+my_dataset = convert_df_to_my_dataset()
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
