@@ -4,13 +4,11 @@ import sys
 import pickle
 sys.path.append("../tools/")
 
+# For data exploration
+import pandas as pd
+
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
-
-### Task 1: Select what features you'll use.
-### features_list is a list of strings, each of which is a feature name.
-### The first feature must be "poi".
-features_list = ['poi','salary'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -18,25 +16,14 @@ with open("final_project_dataset.pkl", "r") as data_file:
 
 my_dataset = data_dict
 
-# For data exploration
-import pandas as pd
-
-# Convert NaN strings into None
-for name in my_dataset:
-    my_dataset[name] = {k: None if v == 'NaN' else v for k,v in my_dataset[name].iteritems()}
 df = pd.DataFrame([dict(name=name, **my_dataset[name]) for name in my_dataset])
 
 # Cleanup data
 PAYMENTS = ('salary', 'bonus', 'long_term_incentive', 'deferred_income', 'deferral_payments', 'loan_advances', 'other', 'expenses', 'director_fees', 'total_payments')
 STOCK_VALUE = ('exercised_stock_options', 'restricted_stock', 'restricted_stock_deferred', 'total_stock_value')
 
-## Payments data
-for x in PAYMENTS:
-    df.loc[df[x].isnull(), x] = 0
-
-## Stock Value data
-for x in STOCK_VALUE:
-    df.loc[df[x].isnull(), x] = 0
+## Convert NaN strings into 0
+df = df.replace(to_replace='NaN', value=0.)
 
 ### Identify discrepancies
 df.loc[df.total_payments < (df.salary + df.bonus + df.long_term_incentive + df.deferred_income + df.deferral_payments + df.loan_advances + df.other + df.expenses + df.director_fees), ['name', 'total_payments']]
@@ -52,6 +39,10 @@ df.loc[df.name == 'BELFER ROBERT', STOCK_VALUE] = (0., 44093., -44093., 0.)
 df.loc[df.name == 'BHATNAGAR SANJAY', PAYMENTS] = (0., 0., 0., 0., 0., 0., 0., 137864., 0., 137864.)
 df.loc[df.name == 'BHATNAGAR SANJAY', STOCK_VALUE] = (15456290., 2604490., -2604490., 15456290.,)
 
+### Task 1: Select what features you'll use.
+### features_list is a list of strings, each of which is a feature name.
+### The first feature must be "poi".
+features_list = ['poi','salary'] # You will need to use more features
 
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
