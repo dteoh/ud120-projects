@@ -38,3 +38,21 @@ features_train, features_test, labels_train, labels_test = train_test_split(feat
 clf = DecisionTreeClassifier()
 clf.fit(features_train, labels_train)
 print clf.score(features_test, labels_test)
+
+print "expected={0}".format(len([y for y in labels_test if y > 0]))
+
+predictions = clf.predict(features_test)
+print "predicted={0}".format(len([y for y in predictions if y > 0]))
+print "true_positives={0}".format(len([1 for (expected, predicted) in zip(labels_test, predictions) if expected == predicted and expected == 1]))
+
+from sklearn.metrics import precision_score, recall_score
+print "precision={0}".format(precision_score(labels_test, predictions))
+print "recall={0}".format(recall_score(labels_test, predictions))
+
+
+# [0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1]
+# [0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0]
+# TP = 6
+# FP = 3
+# FN = 2
+
