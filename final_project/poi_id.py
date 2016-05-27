@@ -54,9 +54,9 @@ df = df[df.name != 'TOTAL']
 # df.boxplot(by='poi', column=list(STOCK_VALUE))
 
 # for row in df.itertuples():
-#     plt.scatter(row.other, row.bonus, c=('r' if row.poi else None))
-# plt.xlabel('other')
-# plt.ylabel('bonus')
+#     plt.scatter(row.shared_receipt_with_poi, row.expenses, c=('r' if row.poi else None))
+# plt.xlabel('shared_receipt_with_poi')
+# plt.ylabel('expenses')
 # plt.show()
 
 # exit()
@@ -73,7 +73,7 @@ features_list.extend(payment_features)
 features_list.extend(stock_value_features)
 features_list.extend(email_features)
 
-features_list = ['poi', 'loan_advances' ,'deferral_payments' ,'exercised_stock_options' ,'long_term_incentive' ,'bonus' ,'other']
+# features_list = ['poi', 'loan_advances' ,'deferral_payments' ,'exercised_stock_options' ,'long_term_incentive' ,'bonus' ,'other']
 
 ### Task 2: Remove outliers
 ### Task 3: Create new feature(s)
@@ -99,17 +99,31 @@ labels, features = targetFeatureSplit(data)
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
-# Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.ensemble import BaggingClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import KernelPCA, RandomizedPCA
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.grid_search import GridSearchCV
-# estimators = [('kbest'), ('svm', SVC())]
-# clf = Pipeline(estimators)
+from sklearn.svm import SVC
+
+# parameters = dict(
+#         n_estimators=[1, 2, 4, 8, 16, 32, 64, 128, 256],
+#         max_features=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+#         bootstrap=[True],
+#         oob_score=[True, False])
+# clf = GridSearchCV(BaggingClassifier(random_state=42, n_jobs=-1), parameters, scoring='f1')
+estimators = [('rpca', RandomizedPCA()), ('clf', SVC())]
+clf = Pipeline(estimators)
 parameters = dict(
-        n_estimators=[1, 2, 4, 8, 16, 32, 64, 128, 256],
-        max_features=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-        bootstrap=[True],
-        oob_score=[True, False])
-clf = GridSearchCV(BaggingClassifier(random_state=42, n_jobs=-1), parameters, scoring='f1')
+        rpca__n_components=[1, 2, 4, 8, None],
+        rpca__whiten=[True, False],
+        clf__C=[0.01, 0.1, 0.2, 0.5, 1.0, 2.0, 3.0, 5.0, 8.0, 10.0, 20.0, 50.0, 100.0],
+        clf__kernel=['rbf'], # 'linear', 'poly', 'sigmoid'],
+        # clf__degree=[2, 3, 4],
+        clf__class_weight=['balanced', None],
+        clf__decision_function_shape=['ovr'],
+        clf__gamma=[1, 2, 4, 8, 'auto'],
+        clf__shrinking=[True, False])
+clf = GridSearchCV(clf, parameters, scoring='f1')
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
